@@ -2,6 +2,7 @@ import time
 import tkinter as tk
 from tkinter import filedialog
 from faster_whisper import WhisperModel
+import os
 
 def main():
     # GUIで音声ファイルを選択
@@ -12,6 +13,13 @@ def main():
     if not file_path:
         print("ファイルが選択されませんでした。終了します。")
         return
+    
+    # ファイル名から拡張子を除いた部分を取得
+    base_name = os.path.splitext(os.path.basename(file_path))[0]
+    
+    # 保存先のテキストファイル名を設定
+    output_with_timestamp = f"{base_name}_with_timestamp.txt"
+    output_without_timestamp = f"{base_name}_without_timestamp.txt"
 
     start_time = time.time()  # 処理開始時間
 
@@ -25,7 +33,7 @@ def main():
     print(f"Detected language '{info.language}' with probability {info.language_probability}")
 
     # 結果をテキストファイルに保存（タイムスタンプあり）
-    with open("transcription_with_timestamp.txt", "w") as f_with_timestamp, open("transcription_without_timestamp.txt", "w") as f_without_timestamp:
+    with open(output_with_timestamp, "w") as f_with_timestamp, open(output_without_timestamp, "w") as f_without_timestamp:
         for segment in segments:
             timestamp_text = f"[{segment.start:.0f}s -> {segment.end:.0f}s] {segment.text}\n"
             f_with_timestamp.write(timestamp_text)
