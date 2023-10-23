@@ -13,9 +13,14 @@ video = VideoFileClip(file_path)
 # 音声の抽出
 audio = video.audio
 
+# 保存先ダイアログの表示
+output_audio_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 files", "*.mp3")])
+
 # 音声の保存
-output_audio_path = "output_audio.mp3"
-audio.write_audiofile(output_audio_path)
+if output_audio_path:  # 保存先が選択された場合
+    audio.write_audiofile(output_audio_path)
+
+
 
 # リソース解放
 video.close()
