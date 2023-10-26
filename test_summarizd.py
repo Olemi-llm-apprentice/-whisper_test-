@@ -43,7 +43,7 @@ Please summarize the following sentences in Japanese without any missing content
 #First sentence:
 '''
 
-prompt2=f'''
+prompt2_1=f'''
 Take a deep breath and work on this problem step-by-step.
 
 #Role.
@@ -56,29 +56,48 @@ The final output should be based on the output of all chunks of the summary resu
 Please make sure to output the data in Japanese.
 Please output only the summary content and do not speak any other language.
 #One previous summary result:
+'''
 
+prompt2_2=f'''
 #Order
 Please summarize the following sentences in Japanese without any missing content.
 
 #Continued sentences:
 '''
 
-
+summaries = []
     
 for i, doc in enumerate(docs[:5]):
     if i == 0:
         response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-        {"role": "system", "content": prompt1},
-        {"role": "user", "content": doc.page_content}        
-    ]
-        summary = response["choices"][0]["message"]["content"]
-)
+            model="gpt-3.5-turbo",
+            temperature=0,
+            messages=[
+                {"role": "system", "content": prompt1},
+                {"role": "user", "content": doc.page_content}        
+            ]
+        )
         
-        prompt = "prompt1"
+        summary_piece = response["choices"][0]["message"]["content"]
+        print(summary_piece)
+        summaries.append(summary_piece)
         
     else:
-        prompt = "prompt2"
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            temperature=0,
+            messages=[
+                {"role": "system", "content": prompt2_1},
+                {"role": "user", "content": summaries[-1]},
+                {"role": "system", "content": prompt2_2},
+                {"role": "user", "content": doc.page_content}          
+            ]
+        )
+        print(summaries[-1])
+        summary_piece = response["choices"][0]["message"]["content"]
+        print(summary_piece)
+        summaries.append(summary_piece)
+        
+print(summaries)
 
 print(f"{time.time() - start_time}")
