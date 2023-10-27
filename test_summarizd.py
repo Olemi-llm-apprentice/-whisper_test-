@@ -19,7 +19,7 @@ file_path = filedialog.askopenfilename()
 with open(file_path, 'r') as f:
     long_text = f.read()
 
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500)
 texts = text_splitter.split_text(long_text)
 docs = [Document(page_content=t) for t in texts]
 
@@ -43,7 +43,7 @@ Please summarize the following sentences in Japanese without any missing content
 #First sentence:
 '''
 
-prompt2_1=f'''
+prompt2=f'''
 Take a deep breath and work on this problem step-by-step.
 
 #Role.
@@ -56,9 +56,8 @@ The final output should be based on the output of all chunks of the summary resu
 Please make sure to output the data in Japanese.
 Please output only the summary content and do not speak any other language.
 #One previous summary result:
-'''
+{summaries[-1]}
 
-prompt2_2=f'''
 #Order
 Please summarize the following sentences in Japanese without any missing content.
 
@@ -66,6 +65,7 @@ Please summarize the following sentences in Japanese without any missing content
 '''
 
 summaries = []
+usages = 0
     
 for i, doc in enumerate(docs[:5]):
     if i == 0:
@@ -77,6 +77,9 @@ for i, doc in enumerate(docs[:5]):
                 {"role": "user", "content": doc.page_content}        
             ]
         )
+        usage = response["usage"]["total_tokens"]
+        print(usage)
+        usages += usage
         
         summary_piece = response["choices"][0]["message"]["content"]
         print(summary_piece)
@@ -87,17 +90,23 @@ for i, doc in enumerate(docs[:5]):
             model="gpt-3.5-turbo",
             temperature=0,
             messages=[
-                {"role": "system", "content": prompt2_1},
-                {"role": "user", "content": summaries[-1]},
-                {"role": "system", "content": prompt2_2},
+                {"role": "system", "content": prompt2},
                 {"role": "user", "content": doc.page_content}          
             ]
         )
         print(summaries[-1])
+        
+        usage = response["usage"]["total_tokens"]
+        print(usage)
+        usages += usage
+        
         summary_piece = response["choices"][0]["message"]["content"]
         print(summary_piece)
         summaries.append(summary_piece)
         
+
+        
 print(summaries)
+print(usages)
 
 print(f"{time.time() - start_time}")
