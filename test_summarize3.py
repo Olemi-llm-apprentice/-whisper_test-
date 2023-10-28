@@ -90,6 +90,9 @@ if __name__ == '__main__':
         usage = generate_summary(doc, prompt_to_use, summaries)
         usages += usage
 
-    # print(summaries)
+    with open('summaries.txt', 'w') as f:
+        for summary in summaries:
+            f.write(f"{summary}\n")
+            
     print(usages)
     print(f"{time.time() - start_time}")
