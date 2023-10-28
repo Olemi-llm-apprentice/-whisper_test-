@@ -10,42 +10,40 @@ def select_file():
     root.withdraw()
     return filedialog.askopenfilename()
 
-def generate_summary(doc, prompt, summaries):
+def generate_summary(summarized_text, prompt):
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         temperature=0,
         messages=[
             {"role": "system", "content": prompt},
-            {"role": "user", "content": doc.page_content}
+            {"role": "user", "content": summarized_text}
         ]
     )
     
     #usage = response["usage"]["total_tokens"]
-    input_token = response["usage"]["prompt_tokens"]
-    output_token = response["usage"]["completion_tokens"]
+    input_token = int(response["usage"]["prompt_tokens"])
+    output_token = int(response["usage"]["completion_tokens"])
 
 
-    summary_piece = response["choices"][0]["message"]["content"]
-    summaries.append(summary_piece)
+    markdown_text = response["choices"][0]["message"]["content"]
     
-    print(f"Document {i + 1}: {summary_piece}...\n\n")
-    
-    return input_token,output_token
+    return input_token,output_token,markdown_text
 
 def calculate_cost(tokens, rate_per_1k):
     return (tokens / 1000) * rate_per_1k
 
 if __name__ == '__main__':
     start_time = time.time()
+    
     load_dotenv()
-    openai_api_key = os.environ['OPENAI_API_KEY']
+    openai.api_key = os.environ['OPENAI_API_KEY']
     
     selected_file_path = select_file()
     input_filename = os.path.basename(selected_file_path)
     output_filename = os.path.splitext(input_filename)[0] + "_summaries.txt"
 
-    with open(selected_file_path, 'r') as f:
-        long_text = f.read()
+    with open(selected_file_path, 'r', encoding='utf-8') as f:
+        summarized_text = f.read()
         
     prompt='''
     Take a deep breath and work on this problem step-by-step.
@@ -71,19 +69,18 @@ if __name__ == '__main__':
     input_token = 0
     output_token = 0
     
-    for i, doc in enumerate(docs):
-        prompt_to_use = prompt
-       
-        input_tokens, output_tokens = generate_summary(doc, prompt_to_use, summaries)
-        input_token += input_tokens
-        output_token += output_tokens
+
+    prompt_to_use = prompt
+    
+    input_tokens, output_tokens, markdown_text = generate_summary(summarized_text, prompt_to_use)
+    input_token = input_tokens
+    output_token = output_tokens
         
     with open(output_filename, 'w') as f:
-        for summary in summaries:
-            f.write(f"{summary}\n")
+        f.write(markdown_text)
     
-    input_rate_per_1k = 0.0015
-    output_rate_per_1k = 0.002
+    input_rate_per_1k = 0.003
+    output_rate_per_1k = 0.004
     
 
     input_cost = calculate_cost(input_token, input_rate_per_1k)
