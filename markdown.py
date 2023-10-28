@@ -40,7 +40,7 @@ if __name__ == '__main__':
     
     selected_file_path = select_file()
     input_filename = os.path.basename(selected_file_path)
-    output_filename = os.path.splitext(input_filename)[0] + "_summaries.txt"
+    output_filename = os.path.splitext(input_filename)[0] + "_markdown.txt"
 
     with open(selected_file_path, 'r', encoding='utf-8') as f:
         summarized_text = f.read()
