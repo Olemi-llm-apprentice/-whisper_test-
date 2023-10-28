@@ -4,8 +4,6 @@ import openai
 import tkinter as tk
 from tkinter import filedialog
 from dotenv import load_dotenv
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
 
 def select_file():
     root = tk.Tk()
@@ -49,28 +47,22 @@ if __name__ == '__main__':
     with open(selected_file_path, 'r') as f:
         long_text = f.read()
         
-    chunk_size=1200
-    chunk_overlap=int(chunk_size * 0.2)
-
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size,chunk_overlap=chunk_overlap,)
-    texts = text_splitter.split_text(long_text)
-    docs = [Document(page_content=t) for t in texts]
-
-    prompt1 = '''
+    prompt='''
     Take a deep breath and work on this problem step-by-step.
 
     #Role.
     You are able to see through the overall structure and are a genius at summarizing sentences to order.
     #Conditions
-    The following sentences are text data transcribed from audio that has been divided into multiple chunks.
+    The following text data is a summary of the transcribed audio, which was into multiple chunks.
     Please make sure to output the data in Japanese.
-    Please output only the summary content and no other remarks.
-    Users only send long sentences, so make sure to output a summary statement in response to them.
+    Please output only  content and no other remarks.
+    Please understand the following sentences and note the paragraphs and turns in the story
     
     #Order
-    Please summarize the following sentences in Japanese without any missing content.
+    Please convert the following text into a markdown format for posting on your blog.
+    Please do not lose any of the content.
 
-    #First sentence:
+    #sentence:
     '''
 
 
@@ -80,7 +72,7 @@ if __name__ == '__main__':
     output_token = 0
     
     for i, doc in enumerate(docs):
-        prompt_to_use = prompt1
+        prompt_to_use = prompt
        
         input_tokens, output_tokens = generate_summary(doc, prompt_to_use, summaries)
         input_token += input_tokens
@@ -103,10 +95,7 @@ if __name__ == '__main__':
     total_cost_jpy = total_cost_usd * exchange_rate
      
     
-    # print(f"Input tokens: {input_token}")
-    # print(f"Output tokens: {output_token}")
-    # print(f"Input cost: ${input_cost:.4f}")
-    # print(f"Output cost: ${output_cost:.4f}")
     print(f"この要約に${total_cost_usd:.4f} ({total_cost_jpy:.2f}円)かかりました。")
     
     print(f"処理時間：{time.time() - start_time:.2f}sec")
+
